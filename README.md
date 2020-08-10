@@ -2,7 +2,7 @@
 This project adaptform SerialTransfer and pySerialTranfer for more simple, convenience in implementation and more compatibillity with Arduino data type.
 This project only support Serial UART comunication with simple variable type including bool, char, byte, int, unsigned int, long, unsigned long and float.
 ### Added
- - addData, readData for more convenience.
+ - Implement addData(), readData() for more convenience.
  - Add Specific data type for python.
 
 ### Removed
