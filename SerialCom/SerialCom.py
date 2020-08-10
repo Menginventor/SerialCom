@@ -1,8 +1,8 @@
-from CRC import *
 import serial
 import serial.tools.list_ports
 import struct
 import time
+from .CRC import CRC
 START_BYTE = 0x7E
 STOP_BYTE  = 0x81
 find_start_byte    = 0
@@ -26,8 +26,8 @@ def serial_ports():
 class SerialCom(object):
     def __init__(self, port_name, baud=115200,MAX_PACKET_SIZE = 32):
         self.MAX_PACKET_SIZE = MAX_PACKET_SIZE
-        self.add_data_idx = 0
-        self.read_data_idx = 0
+        self.addData_idx = 0
+        self.readData_idx = 0
         self.txBuff = [' ' for i in range(MAX_PACKET_SIZE - 1)]
         self.rxBuff = [' ' for i in range(MAX_PACKET_SIZE - 1)]
         self.port_name = port_name
@@ -38,7 +38,7 @@ class SerialCom(object):
         self.connection.port = self.port_name
         self.connection.baudrate = baud
         self.state = find_start_byte
-    def add_data(self,val,data_type):
+    def addData(self,val,data_type):
         format_str = ''
         if data_type == 'byte':
             if type(val) == str :
@@ -75,8 +75,8 @@ class SerialCom(object):
 
         val_bytes = struct.pack(format_str, val)
         for idx in range(len(val_bytes)):
-            self.txBuff[idx + self.add_data_idx] = val_bytes[idx]
-        self.add_data_idx += len(val_bytes)
+            self.txBuff[idx + self.addData_idx] = val_bytes[idx]
+        self.addData_idx += len(val_bytes)
 
     def send(self, packet_id=0):
         '''
@@ -91,15 +91,15 @@ class SerialCom(object):
         '''
 
         stack = []
-        message_len = self.add_data_idx
+        message_len = self.addData_idx
 
         try:
-            print(message_len)
-            print(self.txBuff)
+
+
             self.calc_overhead(message_len)
             self.stuff_packet(message_len)
             found_checksum = self.crc.calculate(self.txBuff, message_len)
-            print(self.txBuff)
+
 
             stack.append(START_BYTE)
             stack.append(packet_id)
@@ -120,7 +120,7 @@ class SerialCom(object):
             stack = bytearray(stack)
 
             if self.open():
-                print(stack)
+
                 self.connection.write(stack)
 
             return True
@@ -219,7 +219,7 @@ class SerialCom(object):
         if self.connection.is_open:
             self.connection.close()
     def clear_packet(self):
-        self.add_data_idx = 0
+        self.addData_idx = 0
     
     def unpack_packet(self, pay_len):
         '''
@@ -308,7 +308,7 @@ class SerialCom(object):
                             self.unpack_packet(self.bytesToRec)
                             self.bytesRead = self.bytesToRec
                             self.status = NEW_DATA
-                            self.read_data_idx = 0
+                            self.readData_idx = 0
 
                             return self.bytesRead
 
@@ -330,7 +330,7 @@ class SerialCom(object):
         self.status = CONTINUE
         return self.bytesRead
 
-    def read_data(self, obj_type):
+    def readData(self, obj_type):
         '''
         Description:
         ------------
@@ -378,8 +378,8 @@ class SerialCom(object):
 
 
 
-        buff = bytes(self.rxBuff[self.read_data_idx:(self.read_data_idx + data_size[obj_type])])
-        self.read_data_idx += data_size[obj_type]
+        buff = bytes(self.rxBuff[self.readData_idx:(self.readData_idx + data_size[obj_type])])
+        self.readData_idx += data_size[obj_type]
         #
         format_str = conversion_dict[obj_type]
 
@@ -398,10 +398,10 @@ if __name__ == '__main__':
     link = SerialCom('COM5')
     link.open()
     time.sleep(2)
-    link.add_data(START_BYTE,'byte')
+    link.addData(START_BYTE,'byte')
 
-    link.add_data(1.123, 'float')
-    link.add_data('H', 'char')
+    link.addData(1.123, 'float')
+    link.addData('H', 'char')
     link.send()
     while not link.available():
         if link.status < 0:
@@ -413,9 +413,9 @@ if __name__ == '__main__':
     for index in range(link.bytesRead):
         print(link.rxBuff[index])
 
-    print(link.read_data('byte'))
-    print(link.read_data('float'))
-    print(link.read_data('char'))
+    print(link.readData('byte'))
+    print(link.readData('float'))
+    print(link.readData('char'))
     link.close()
 
 
